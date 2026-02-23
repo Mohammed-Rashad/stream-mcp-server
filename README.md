@@ -121,13 +121,83 @@ Add the following to your `claude_desktop_config.json`:
 
 ---
 
+## Remote Deployment (Hosted URL)
+
+You can deploy the MCP server as a **hosted URL** so users connect to it remotely
+(like `https://mcp.linear.app/sse`) — no local installation needed.
+
+Each user passes their own Stream API key as a Bearer token.
+
+### 1. Run locally (remote mode)
+
+```bash
+# No STREAM_API_KEY needed — each user provides their own
+stream-mcp-remote
+# → Listening on http://0.0.0.0:8000
+
+# Custom host/port
+HOST=0.0.0.0 PORT=3000 stream-mcp-remote
+```
+
+### 2. Deploy with Docker
+
+```bash
+docker build -t stream-mcp .
+docker run -p 8000:8000 stream-mcp
+```
+
+### 3. Deploy to a cloud platform
+
+**Railway:**
+```bash
+railway up
+```
+
+**Fly.io:**
+```bash
+fly launch
+fly deploy
+```
+
+**Render:** Connect your GitHub repo and set the Docker build path.
+
+Your server will be available at something like:
+```
+https://stream-mcp.up.railway.app/mcp
+```
+
+### 4. How users connect (remote)
+
+Users add this to their MCP client config:
+
+**Claude Desktop / VS Code:**
+```json
+{
+  "mcpServers": {
+    "stream": {
+      "url": "https://your-domain.com/mcp",
+      "headers": {
+        "Authorization": "Bearer sk_live_YOUR_STREAM_API_KEY"
+      }
+    }
+  }
+}
+```
+
+> Each user passes their **own** Stream API key as the Bearer token.
+> The server never stores keys — they are used only for the duration of the session.
+
+---
+
 ## Project Structure
 
 ```
 src/stream_mcp/
-├── server.py          # FastMCP app entry-point
+├── server.py          # FastMCP app entry-point (local + remote modes)
 ├── config.py          # Settings from env vars
 ├── client.py          # Async HTTP client (auth, retries, errors)
+├── auth.py            # Bearer token middleware (remote mode)
+├── helpers.py         # get_client() — resolves per-request StreamClient
 ├── models/            # Pydantic v2 request/response models
 │   ├── payment_links.py
 │   ├── customers.py

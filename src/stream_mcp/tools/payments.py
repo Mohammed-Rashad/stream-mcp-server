@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from fastmcp.server.context import Context
 
 from stream_mcp.client import StreamAPIError
+from stream_mcp.helpers import get_client
 from stream_mcp.models.payments import MarkPaymentPaidRequest, RefundPaymentRequest
 
 _BASE = "/api/v2/payments"
@@ -48,7 +49,7 @@ def register(mcp: FastMCP) -> None:
             params["from_date"] = from_date
         if to_date:
             params["to_date"] = to_date
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(_BASE, params=params)
         except StreamAPIError as exc:
@@ -63,7 +64,7 @@ def register(mcp: FastMCP) -> None:
 
         Returns amount, status, payment method, customer info, and more.
         """
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(f"{_BASE}/{payment_id}")
         except StreamAPIError as exc:
@@ -85,7 +86,7 @@ def register(mcp: FastMCP) -> None:
             payment_method=payment_method,
             note=note,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(
                 f"{_BASE}/{payment_id}/mark-paid",
@@ -111,7 +112,7 @@ def register(mcp: FastMCP) -> None:
             refund_note=refund_note,
             allow_refund_multiple_related_payments=allow_refund_multiple_related_payments,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(
                 f"{_BASE}/{payment_id}/refund",

@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from fastmcp.server.context import Context
 
 from stream_mcp.client import StreamAPIError
+from stream_mcp.helpers import get_client
 from stream_mcp.models.products import (
     CreateProductRequest,
     ProductPriceInlineCreate,
@@ -56,7 +57,7 @@ def register(mcp: FastMCP) -> None:
             recurring_interval=recurring_interval,
             recurring_interval_count=recurring_interval_count,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(_BASE, body.model_dump(exclude_none=True))
         except StreamAPIError as exc:
@@ -83,7 +84,7 @@ def register(mcp: FastMCP) -> None:
             params["active"] = active
         if currency:
             params["currency"] = currency
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(_BASE, params=params)
         except StreamAPIError as exc:
@@ -95,7 +96,7 @@ def register(mcp: FastMCP) -> None:
         ctx: Context = None,  # type: ignore[assignment]
     ) -> dict[str, Any]:
         """Get a single product by ID."""
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(f"{_BASE}/{product_id}")
         except StreamAPIError as exc:
@@ -116,7 +117,7 @@ def register(mcp: FastMCP) -> None:
         body = UpdateProductRequest(
             name=name, description=description, is_active=is_active,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.put(
                 f"{_BASE}/{product_id}",
@@ -134,7 +135,7 @@ def register(mcp: FastMCP) -> None:
 
         This is a soft-delete; the product record is retained for history.
         """
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.delete(f"{_BASE}/{product_id}")
         except StreamAPIError as exc:

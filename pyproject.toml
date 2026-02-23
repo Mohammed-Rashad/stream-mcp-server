@@ -9,6 +9,7 @@ dependencies = [
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
     "python-dotenv>=1.0",
+    "uvicorn>=0.30",
 ]
 
 [project.optional-dependencies]
@@ -20,6 +21,7 @@ dev = [
 
 [project.scripts]
 stream-mcp = "stream_mcp.server:main"
+stream-mcp-remote = "stream_mcp.server:main_remote"
 
 [build-system]
 requires = ["hatchling"]

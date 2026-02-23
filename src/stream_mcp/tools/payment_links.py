@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from fastmcp.server.context import Context
 
 from stream_mcp.client import StreamAPIError
+from stream_mcp.helpers import get_client
 from stream_mcp.models.payment_links import (
     CreatePaymentLinkRequest,
     UpdatePaymentLinkStatusRequest,
@@ -52,7 +53,7 @@ def register(mcp: FastMCP) -> None:
             max_number_of_payments=max_number_of_payments,
             organization_consumer_id=organization_consumer_id,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(_BASE, body.model_dump(exclude_none=True))
         except StreamAPIError as exc:
@@ -78,7 +79,7 @@ def register(mcp: FastMCP) -> None:
             params["from_date"] = from_date
         if to_date:
             params["to_date"] = to_date
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(_BASE, params=params)
         except StreamAPIError as exc:
@@ -90,7 +91,7 @@ def register(mcp: FastMCP) -> None:
         ctx: Context = None,  # type: ignore[assignment]
     ) -> dict[str, Any]:
         """Retrieve a single payment link by its ID."""
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(f"{_BASE}/{payment_link_id}")
         except StreamAPIError as exc:
@@ -107,7 +108,7 @@ def register(mcp: FastMCP) -> None:
             status="INACTIVE",
             deactivate_message=deactivate_message,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.patch(
                 f"{_BASE}/{payment_link_id}/status",

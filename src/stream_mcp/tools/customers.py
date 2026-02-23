@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from fastmcp.server.context import Context
 
 from stream_mcp.client import StreamAPIError
+from stream_mcp.helpers import get_client
 from stream_mcp.models.customers import (
     CreateCustomerRequest,
     UpdateCustomerRequest,
@@ -48,7 +49,7 @@ def register(mcp: FastMCP) -> None:
             comment=comment, preferred_language=preferred_language,
             communication_methods=communication_methods,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(_BASE, body.model_dump(exclude_none=True))
         except StreamAPIError as exc:
@@ -65,7 +66,7 @@ def register(mcp: FastMCP) -> None:
         Returns a paginated list of customers.
         """
         params: dict[str, Any] = {"page": page, "limit": limit}
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(_BASE, params=params)
         except StreamAPIError as exc:
@@ -77,7 +78,7 @@ def register(mcp: FastMCP) -> None:
         ctx: Context = None,  # type: ignore[assignment]
     ) -> dict[str, Any]:
         """Get a single customer record by ID."""
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(f"{_BASE}/{customer_id}")
         except StreamAPIError as exc:
@@ -107,7 +108,7 @@ def register(mcp: FastMCP) -> None:
             comment=comment, preferred_language=preferred_language,
             communication_methods=communication_methods,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.put(
                 f"{_BASE}/{customer_id}",
@@ -125,7 +126,7 @@ def register(mcp: FastMCP) -> None:
 
         The customer record is archived but not permanently removed.
         """
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.delete(f"{_BASE}/{customer_id}")
         except StreamAPIError as exc:

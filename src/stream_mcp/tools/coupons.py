@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from fastmcp.server.context import Context
 
 from stream_mcp.client import StreamAPIError
+from stream_mcp.helpers import get_client
 from stream_mcp.models.coupons import (
     CreateCouponRequest,
     UpdateCouponRequest,
@@ -44,7 +45,7 @@ def register(mcp: FastMCP) -> None:
             currency=currency,
             is_active=is_active,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(_BASE, body.model_dump(exclude_none=True))
         except StreamAPIError as exc:
@@ -68,7 +69,7 @@ def register(mcp: FastMCP) -> None:
             params["active"] = active
         if is_percentage is not None:
             params["is_percentage"] = is_percentage
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(_BASE, params=params)
         except StreamAPIError as exc:
@@ -80,7 +81,7 @@ def register(mcp: FastMCP) -> None:
         ctx: Context = None,  # type: ignore[assignment]
     ) -> dict[str, Any]:
         """Get a single coupon by ID."""
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(f"{_BASE}/{coupon_id}")
         except StreamAPIError as exc:
@@ -93,7 +94,7 @@ def register(mcp: FastMCP) -> None:
     ) -> dict[str, Any]:
         """Deactivate a coupon so it can no longer be redeemed."""
         body = UpdateCouponRequest(is_active=False)
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.put(
                 f"{_BASE}/{coupon_id}",

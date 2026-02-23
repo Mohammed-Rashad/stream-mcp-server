@@ -9,6 +9,7 @@ from fastmcp import FastMCP
 from fastmcp.server.context import Context
 
 from stream_mcp.client import StreamAPIError
+from stream_mcp.helpers import get_client
 from stream_mcp.models.invoices import (
     CreateInvoiceRequest,
     InvoiceItemCreateDto,
@@ -72,7 +73,7 @@ def register(mcp: FastMCP) -> None:
             coupons=coupons,
             currency=currency,
         )
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(_BASE, body.model_dump(exclude_none=True))
         except StreamAPIError as exc:
@@ -106,7 +107,7 @@ def register(mcp: FastMCP) -> None:
             params["from_date"] = from_date
         if to_date:
             params["to_date"] = to_date
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(_BASE, params=params)
         except StreamAPIError as exc:
@@ -118,7 +119,7 @@ def register(mcp: FastMCP) -> None:
         ctx: Context = None,  # type: ignore[assignment]
     ) -> dict[str, Any]:
         """Get a single invoice by ID."""
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.get(f"{_BASE}/{invoice_id}")
         except StreamAPIError as exc:
@@ -130,7 +131,7 @@ def register(mcp: FastMCP) -> None:
         ctx: Context = None,  # type: ignore[assignment]
     ) -> dict[str, Any]:
         """(Re)send an invoice to the customer via email / SMS."""
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(f"{_BASE}/{invoice_id}/send", body={})
         except StreamAPIError as exc:
@@ -145,7 +146,7 @@ def register(mcp: FastMCP) -> None:
 
         Once voided, the invoice can no longer be paid.
         """
-        client = ctx.lifespan_context["client"]
+        client = await get_client(ctx)
         try:
             return await client.post(f"{_BASE}/{invoice_id}/void", body={})
         except StreamAPIError as exc:
