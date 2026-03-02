@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from stream_mcp.auth import current_api_key, current_base_url
+from stream_mcp.auth import current_api_key
 from stream_mcp.client import StreamClient, StreamError
 from stream_mcp.config import settings
 
@@ -36,8 +36,7 @@ async def get_client(ctx: "Context") -> StreamClient:
     1. **Lifespan client** — used in local / stdio mode where a single
        ``STREAM_API_KEY`` is set as an environment variable.
     2. **Per-user client** — used in remote mode where each user passes
-       their own API key as a Bearer token and (optionally) a custom
-       base URL via the ``X-Stream-Base-URL`` header.
+       their own API key as a Bearer token.
     """
     # ── 1. Local mode: shared client from server lifespan ─────────────
     shared_client = ctx.lifespan_context.get("client")
@@ -53,7 +52,7 @@ async def get_client(ctx: "Context") -> StreamClient:
             "In remote mode, pass your key as a Bearer token in the Authorization header."
         )
 
-    base_url = current_base_url.get() or settings.stream_base_url
+    base_url = settings.stream_base_url
     cache_key = f"{api_key}::{base_url}"
 
     if cache_key not in _client_cache:

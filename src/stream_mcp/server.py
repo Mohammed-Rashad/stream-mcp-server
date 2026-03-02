@@ -76,7 +76,7 @@ def main() -> None:
 def main_remote() -> None:
     """CLI entry-point for **remote** mode (``stream-mcp-remote`` command).
 
-    Starts the MCP server over SSE with Bearer-token authentication.
+    Starts the MCP server over HTTP with Bearer-token authentication.
     Each user passes their own Stream API key in the ``Authorization`` header.
 
     Environment variables:
@@ -92,10 +92,10 @@ def main_remote() -> None:
     port = int(os.environ.get("PORT", "8000"))
 
     # Get the ASGI app from FastMCP and wrap with auth middleware
-    app = mcp.http_app(transport="streamable-http")
+    app = mcp.http_app(transport="http", path="/", json_response=True, stateless_http=True)
     app = BearerAuthMiddleware(app)
 
-    logger.info("Starting remote MCP server on %s:%d (streamable-http + Bearer auth)", host, port)
+    logger.info("Starting remote MCP server on %s:%d (HTTP + Bearer auth)", host, port)
     uvicorn.run(app, host=host, port=port)
 
 

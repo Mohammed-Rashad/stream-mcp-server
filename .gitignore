@@ -8,3 +8,6 @@ build/
 .env
 *.egg
 .pytest_cache/
+
+# Local VS Code MCP configuration (contains machine/user secrets)
+.vscode/mcp.json
