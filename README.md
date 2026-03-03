@@ -26,26 +26,39 @@ cp .env.example .env
 
 | Variable | Default | Description |
 |---|---|---|
-| `STREAM_API_KEY` | *(required)* | Your Stream API key |
+| `STREAM_API_KEY` | *(required for stdio mode)* | Your Stream API key |
 | `STREAM_BASE_URL` | `https://stream-app-service.streampay.sa` | API base URL |
 | `STREAM_TIMEOUT` | `30` | Request timeout (seconds) |
 | `STREAM_MAX_RETRIES` | `2` | Retry count for 429 / 5xx |
 
 ### 3. Run
 
-```bash
-# stdio transport (default — for Claude Desktop / Cline)
-stream-mcp
+#### Local stdio mode (recommended)
 
-# SSE transport (for web-based agents)
-stream-mcp --transport sse --port 8000
+```bash
+stream-mcp
+```
+
+#### Remote HTTP mode (URL clients)
+
+```bash
+# No STREAM_API_KEY needed on the server process in remote mode
+HOST=0.0.0.0 PORT=8000 stream-mcp-remote
+```
+
+Endpoint:
+
+```text
+http://localhost:8000/sse
 ```
 
 ---
 
-## Claude Desktop Integration
+## MCP Client Configuration (Claude Desktop / Cursor / VS Code)
 
-Add the following to your `claude_desktop_config.json`:
+Use one of these two patterns in your MCP config file (`claude_desktop_config.json` or `mcp.json`).
+
+### Option A: stdio
 
 ```json
 {
@@ -53,7 +66,22 @@ Add the following to your `claude_desktop_config.json`:
     "stream": {
       "command": "stream-mcp",
       "env": {
-        "STREAM_API_KEY": "your_key_here"
+        "STREAM_API_KEY": "sk_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+### Option B: remote URL (`stream-mcp-remote`)
+
+```json
+{
+  "mcpServers": {
+    "stream": {
+      "url": "http://localhost:8000/sse",
+      "headers": {
+        "Authorization": "Bearer sk_live_your_key_here"
       }
     }
   }
@@ -123,8 +151,7 @@ Add the following to your `claude_desktop_config.json`:
 
 ## Remote Deployment (Hosted URL)
 
-You can deploy the MCP server as a **hosted URL** so users connect to it remotely
-(like `https://mcp.linear.app/sse`) — no local installation needed.
+You can deploy the MCP server as a **hosted URL** so users connect to it remotely.
 
 Each user passes their own Stream API key as a Bearer token.
 
@@ -143,30 +170,10 @@ HOST=0.0.0.0 PORT=3000 stream-mcp-remote
 
 ```bash
 docker build -t stream-mcp .
-docker run -p 8000:8000 stream-mcp
+docker run --rm -p 8000:8000 stream-mcp
 ```
 
-### 3. Deploy to a cloud platform
-
-**Railway:**
-```bash
-railway up
-```
-
-**Fly.io:**
-```bash
-fly launch
-fly deploy
-```
-
-**Render:** Connect your GitHub repo and set the Docker build path.
-
-Your server will be available at something like:
-```
-https://stream-mcp.up.railway.app/mcp
-```
-
-### 4. How users connect (remote)
+### 3. How users connect (remote)
 
 Users add this to their MCP client config:
 
@@ -175,7 +182,7 @@ Users add this to their MCP client config:
 {
   "mcpServers": {
     "stream": {
-      "url": "https://your-domain.com/mcp",
+      "url": "https://your-domain.com/sse",
       "headers": {
         "Authorization": "Bearer sk_live_YOUR_STREAM_API_KEY"
       }
